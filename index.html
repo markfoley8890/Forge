@@ -22,8 +22,8 @@
   --volt:#C6FF3D; --volt-dim:#9ecb2e; --teal:#39D0D8; --amber:#FFB23E; --red:#FF5C5C;
   --r:16px; --r-sm:11px;
   --safe-b:env(safe-area-inset-bottom,0px);
-  /* reserve space for the tiiny.host free-tier ribbon pinned to the bottom of the screen */
-  --tiiny:64px;
+  /* tiiny.host free-tier ribbon space — set at runtime only when actually hosted on tiiny */
+  --tiiny:0px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{background:var(--bg);color:var(--txt);font-family:'Manrope',system-ui,sans-serif;overscroll-behavior-y:none}
@@ -84,6 +84,10 @@ input,select{font-family:inherit}
 .upnext .meta .s{color:var(--mut);font-size:13px;margin-top:1px}
 .weekpill{display:inline-flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--line);
   color:var(--teal);font-weight:700;font-size:11.5px;letter-spacing:.04em;padding:5px 10px;border-radius:99px}
+.weeknav{display:flex;align-items:center;gap:6px}
+.wkbtn{width:27px;height:27px;border-radius:9px;background:var(--card2);border:1px solid var(--line2);
+  color:var(--mut);font-size:17px;line-height:1;display:grid;place-items:center;flex:none;padding:0}
+.wkbtn:active{color:var(--volt);transform:scale(.9)}
 
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;
   background:var(--volt);color:#10140a;font-weight:800;font-size:15px;padding:14px;border-radius:13px;letter-spacing:.01em}
@@ -145,6 +149,7 @@ input,select{font-family:inherit}
 .blockbanner.deload{border-color:#5a4a23;background:linear-gradient(120deg,#241f12,#2a2415)}
 .blockbanner .wk{font-family:'Bebas Neue';font-size:34px;color:var(--volt);line-height:.8;flex:none}
 .blockbanner.deload .wk{color:var(--amber)}
+.blockbanner .info{flex:1;min-width:0}
 .blockbanner .info b{font-size:13.5px;font-weight:800;display:block}
 .blockbanner .info span{font-size:12px;color:var(--mut);line-height:1.35;display:block;margin-top:2px}
 
@@ -312,7 +317,7 @@ input,select{font-family:inherit}
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px">
       <span class="eyebrow" style="margin:0">Up Next</span>
-      <span class="weekpill" id="hWeekPill">Week 1 · Block 1</span>
+      <div class="weeknav"><button class="wkbtn" onclick="shiftWeek(-1)" aria-label="Previous week">&lsaquo;</button><span class="weekpill" id="hWeekPill">Week 1 · Block 1</span><button class="wkbtn" onclick="shiftWeek(1)" aria-label="Next week">&rsaquo;</button></div>
     </div>
     <div class="upnext">
       <div class="badge" id="hNextBadge">A</div>
@@ -365,7 +370,7 @@ input,select{font-family:inherit}
     <div class="stat"><div class="v" id="sThisWeek">0</div><div class="k">this week</div></div>
   </div>
   <div class="card chartcard">
-    <h3>Bodyweight</h3><div class="sub">Heading for 85 kg</div>
+    <h3>Bodyweight</h3><div class="sub" id="bwGoalSub">Heading for 85 kg</div>
     <div id="bwChart" class="chartbox"></div>
   </div>
   <div class="card chartcard" id="waistCard" style="display:none">
@@ -454,6 +459,7 @@ function planFor(day){return DATA.plan[day]||DEFAULT_PLAN[day];}
 
 function defaults(){return{
   startDate:todayISO(), startWeight:96, goalWeight:85,
+  weekShift:0,
   targets:{cals:2300,protein:190,carbs:240,fat:65},
   bodyweights:[{date:todayISO(),kg:96}],
   plan:clonePlan(),
@@ -464,12 +470,29 @@ var DATA=load(); if(!DATA){DATA=defaults();save();}
 // migration: older saves won't have a plan — seed it so existing users keep their logged data
 if(!DATA.plan){DATA.plan=clonePlan();save();}
 if(!DATA.cardio){DATA.cardio=[];save();} // run/surf log added later
+if(DATA.weekShift==null){DATA.weekShift=0;save();} // manual week nav added later
 if(!persistent)document.getElementById('storeBanner').classList.add('on');
 
-function weekNum(){
+function calWeek(){
   var s=new Date(DATA.startDate+"T00:00:00"), n=new Date(todayISO()+"T00:00:00");
-  var w=Math.floor((n-s)/6048e5)+1;
+  return Math.floor((n-s)/6048e5)+1;
+}
+function weekNum(){
+  var w=calWeek()+(DATA.weekShift||0);
   return Math.max(1,Math.min(12,w));
+}
+/* manual week navigation: slides the whole schedule relative to the calendar.
+   Weeks still tick over automatically each calendar week from wherever you've set it. */
+function shiftWeek(d){
+  var target=weekNum()+d;
+  if(target<1){toast('Already at week 1');return;}
+  if(target>12){toast('Week 12 is the final week');return;}
+  DATA.weekShift=target-calWeek();
+  save();
+  if(current==='home')renderHome();
+  if(current==='train')renderTrain(currentDay());
+  var info=weekInfo(target);
+  toast('Week '+target+(info.deload?' — deload':''));
 }
 function weekInfo(w){
   var dl=(w===4||w===8||w===12);
@@ -582,7 +605,11 @@ function renderWeekCard(){
 }
 
 /* ---------------- TRAIN ---------------- */
-var draft={}; // day -> exercises sets
+/* in-progress workout draft — persisted on every change so a killed tab can't eat a session */
+var DRAFT_KEY="forge_draft_v1";
+function loadDraft(){try{var r=localStorage.getItem(DRAFT_KEY);return r?JSON.parse(r):{};}catch(e){return {};}}
+function saveDraft(){try{localStorage.setItem(DRAFT_KEY,JSON.stringify(draft));}catch(e){}}
+var draft=loadDraft(); // day -> exercises sets
 function blankSets(day){
   var list=planFor(day),last=lastSession(day),map={};
   if(last)for(var i=0;i<last.exercises.length;i++)map[last.exercises[i].name]=last.exercises[i].sets;
@@ -604,7 +631,9 @@ function renderTrain(day){
   var w=weekNum(),info=weekInfo(w);
   var bb=document.getElementById('blockBanner');
   bb.className='blockbanner'+(info.deload?' deload':'');
-  bb.innerHTML='<div class="wk">W'+w+'</div><div class="info"><b>'+esc(info.block)+'</b><span>'+esc(info.scheme)+'</span></div>';
+  bb.innerHTML='<button class="wkbtn" onclick="shiftWeek(-1)" aria-label="Previous week">&lsaquo;</button>'
+    +'<div class="wk">W'+w+'</div><div class="info"><b>'+esc(info.block)+'</b><span>'+esc(info.scheme)+'</span></div>'
+    +'<button class="wkbtn" onclick="shiftWeek(1)" aria-label="Next week">&rsaquo;</button>';
   var last=lastSession(day),lmap={};
   if(last)for(var i=0;i<last.exercises.length;i++)lmap[last.exercises[i].name]=last.exercises[i];
   var html='';
@@ -654,15 +683,18 @@ function renderTrain(day){
 function setVal(el){
   var d=el.getAttribute('data-d'),e=+el.getAttribute('data-e'),s=+el.getAttribute('data-s'),f=el.getAttribute('data-f');
   draft[d][e].sets[s][f]=el.value;
+  saveDraft();
 }
 function addSet(d,e){
   var sets=draft[d][e].sets,p=sets[sets.length-1]||{};
   sets.push({weight:p.weight||'',reps:''});
+  saveDraft();
   renderTrain(d);
 }
 function delSet(d,e,s){
   if(draft[d][e].sets.length<=1)return;
   draft[d][e].sets.splice(s,1);
+  saveDraft();
   renderTrain(d);
 }
 
@@ -706,6 +738,7 @@ function syncPlanFromDraft(day){
   // keep the saved plan in lockstep with the current draft's exercise list (names/targets/types)
   DATA.plan[day]=draft[day].map(function(x){return {n:x.name,t:x.target,type:x.type};});
   save();
+  saveDraft();
 }
 function saveExEdit(day,e){
   var f=readExForm();if(!f)return;
@@ -740,6 +773,7 @@ function resetDayPlan(day){
   DATA.plan[day]=JSON.parse(JSON.stringify(DEFAULT_PLAN[day]));
   save();
   draft[day]=blankSets(day); // rebuild the session from the restored list (re-pulls your last weights)
+  saveDraft();
   renderTrain(day);
   toast(label+' reset to original');
 }
@@ -762,37 +796,44 @@ function finishWorkout(){
   if(!any){toast('Log at least one set first');return;}
   DATA.sessions.push({date:todayISO(),day:day,exercises:logged});
   save();
-  draft[day]=null;
+  delete draft[day];
+  saveDraft();
   toggleTimer(false);
   toast('Workout saved 💪');
   go('home');
 }
 
-/* ---------------- rest timer ---------------- */
-var tInt=null,tTotal=90,tLeft=90;
+/* ---------------- rest timer (timestamp-based: stays accurate through screen lock) ---------------- */
+var tInt=null,tTotal=90,tEnd=0,tDone=true;
 var CIRC=2*Math.PI*19;
 document.getElementById('tRing').setAttribute('stroke-dasharray',CIRC.toFixed(1));
 function toggleTimer(on){document.getElementById('timerbar').classList.toggle('on',on);}
 function startTimer(sec){
-  toggleTimer(true);tTotal=sec;tLeft=sec;
+  toggleTimer(true);tTotal=sec;tEnd=Date.now()+sec*1000;tDone=false;
   if(tInt)clearInterval(tInt);
-  paintTimer();
   document.getElementById('tState').textContent='Resting…';
-  tInt=setInterval(function(){
-    tLeft--;
-    if(tLeft<=0){clearInterval(tInt);tInt=null;tLeft=0;paintTimer();
-      document.getElementById('tState').textContent='Done — go!';
-      if(navigator.vibrate)navigator.vibrate([200,90,200]);
-      beep();return;}
-    paintTimer();
-  },1000);
+  tickTimer();
+  tInt=setInterval(tickTimer,500);
 }
-function paintTimer(){
+function tickTimer(){
+  var tLeft=Math.max(0,Math.ceil((tEnd-Date.now())/1000));
+  paintTimer(tLeft);
+  if(tLeft<=0&&!tDone){
+    tDone=true;
+    if(tInt){clearInterval(tInt);tInt=null;}
+    document.getElementById('tState').textContent='Done — go!';
+    if(navigator.vibrate)navigator.vibrate([200,90,200]);
+    beep();
+  }
+}
+function paintTimer(tLeft){
   var m=Math.floor(tLeft/60),s=tLeft%60;
   document.getElementById('tNum').textContent=m>0?(m+':'+(s<10?'0':'')+s):s;
-  var off=CIRC*(1-tLeft/tTotal);
+  var off=CIRC*(1-Math.min(1,Math.max(0,tLeft/tTotal)));
   document.getElementById('tRing').setAttribute('stroke-dashoffset',off.toFixed(1));
 }
+// when the screen wakes / app returns to foreground, recompute instantly from the timestamp
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&!tDone&&tEnd)tickTimer();});
 var ac=null;
 function beep(){
   try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();
@@ -864,6 +905,7 @@ function renderStats(){
   var cnt=0;for(var i=0;i<DATA.sessions.length;i++)if(DATA.sessions[i].date>=wk)cnt++;
   document.getElementById('sThisWeek').textContent=cnt;
   // bodyweight chart
+  document.getElementById('bwGoalSub').textContent='Heading for '+DATA.goalWeight+' kg';
   var bw=DATA.bodyweights.map(function(b){return{y:b.kg};});
   document.getElementById('bwChart').innerHTML=lineChart(bw,{goal:DATA.goalWeight,color:'#C6FF3D',empty:'Log your weight to see the trend'});
   // waist chart (only if there's waist data)
@@ -1210,6 +1252,7 @@ function importData(input){
       if(!d.plan)d.plan=clonePlan();
       if(!d.cardio)d.cardio=[];      // backfill fields added in later versions
       if(!d.sessions)d.sessions=[];
+      if(d.weekShift==null)d.weekShift=0;
       DATA=d;save();closeModal();toast('Data imported');renderHome();
     }catch(e){toast('Invalid backup file');}
   };
@@ -1221,6 +1264,8 @@ function resetData(){
 }
 
 /* ---------------- boot ---------------- */
+// reserve bottom space for the free-tier ribbon only when actually hosted on tiiny
+if(/tiiny/i.test(location.hostname))document.documentElement.style.setProperty('--tiiny','64px');
 renderHome();
 startDay; // noop ref
 /* single-file build: offline caching omitted; data still saves locally */
