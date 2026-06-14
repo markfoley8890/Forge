@@ -358,7 +358,7 @@ input,select{font-family:inherit}
     <button class="btn ghost sm" style="flex:1" onclick="toggleTimer(true)">Rest timer</button>
     <button class="btn ghost sm" style="flex:1" onclick="openPlateCalc()">Plates</button>
   </div>
-  <button class="btn" style="width:100%;margin-top:10px" onclick="finishWorkout()">Finish &amp; save</button>
+  <button class="btn" id="finishBtn" style="width:100%;margin-top:10px" onclick="finishWorkout()">Finish &amp; save</button>
 </section>
 
 <!-- STATS -->
@@ -572,10 +572,17 @@ function renderHome(){
 }
 
 /* ---- weekly activity (gym days + run + surf done this week) ---- */
+// which program week an entry belongs to: use the stamp saved at log time; for older
+// un-stamped entries, infer from the date so historical data still maps to a week
+function entryWeek(x){
+  if(x.week!=null)return x.week;
+  var st=new Date(DATA.startDate+"T00:00:00"), dt=new Date(x.date+"T00:00:00");
+  return Math.max(1,Math.min(12,Math.floor((dt-st)/6048e5)+1));
+}
 function weekActivity(){
-  var wk=weekStartISO(),gym={},runs=0,surfs=0;
-  for(var i=0;i<DATA.sessions.length;i++)if(DATA.sessions[i].date>=wk)gym[DATA.sessions[i].day]=1;
-  for(var c=0;c<DATA.cardio.length;c++)if(DATA.cardio[c].date>=wk){
+  var w=weekNum(),gym={},runs=0,surfs=0;
+  for(var i=0;i<DATA.sessions.length;i++)if(entryWeek(DATA.sessions[i])===w)gym[DATA.sessions[i].day]=1;
+  for(var c=0;c<DATA.cardio.length;c++)if(entryWeek(DATA.cardio[c])===w){
     if(DATA.cardio[c].type==='Surf')surfs++;else runs++;
   }
   return {gym:gym,runs:runs,surfs:surfs};
@@ -629,6 +636,8 @@ function blankSets(day){
 function renderTrain(day){
   if(!draft[day])draft[day]=blankSets(day);
   var w=weekNum(),info=weekInfo(w);
+  var fb=document.getElementById('finishBtn');
+  if(fb)fb.innerHTML='Finish &amp; save · Week '+w+(info.deload?' (deload)':'');
   var bb=document.getElementById('blockBanner');
   bb.className='blockbanner'+(info.deload?' deload':'');
   bb.innerHTML='<button class="wkbtn" onclick="shiftWeek(-1)" aria-label="Previous week">&lsaquo;</button>'
@@ -794,7 +803,7 @@ function finishWorkout(){
     if(sets.length)logged.push({name:exs[e].name,type:exs[e].type,sets:sets});
   }
   if(!any){toast('Log at least one set first');return;}
-  DATA.sessions.push({date:todayISO(),day:day,exercises:logged});
+  DATA.sessions.push({date:todayISO(),day:day,week:weekNum(),exercises:logged});
   save();
   delete draft[day];
   saveDraft();
@@ -901,9 +910,9 @@ function renderStats(){
   var cur=DATA.bodyweights.length?DATA.bodyweights[DATA.bodyweights.length-1].kg:DATA.startWeight;
   document.getElementById('sLost').textContent=(DATA.startWeight-cur).toFixed(1);
   document.getElementById('sWorkouts').textContent=DATA.sessions.length;
-  var wk=weekStartISO();
-  var cnt=0;for(var i=0;i<DATA.sessions.length;i++)if(DATA.sessions[i].date>=wk)cnt++;
-  document.getElementById('sThisWeek').textContent=cnt;
+  var cw=weekNum(),wkDays={};
+  for(var i=0;i<DATA.sessions.length;i++)if(entryWeek(DATA.sessions[i])===cw)wkDays[DATA.sessions[i].day]=1;
+  document.getElementById('sThisWeek').textContent=Object.keys(wkDays).length;
   // bodyweight chart
   document.getElementById('bwGoalSub').textContent='Heading for '+DATA.goalWeight+' kg';
   var bw=DATA.bodyweights.map(function(b){return{y:b.kg};});
@@ -970,7 +979,7 @@ function renderStrChart(){
   }
   document.getElementById('strChart').innerHTML=lineChart(pts,{color:'#39D0D8',empty:'No data for this lift yet'});
 }
-function weekStartISO(){
+function weekStartISO(){ // kept for backups/compat; no longer used for completion logic
   var d=new Date(todayISO()+"T00:00:00");var day=(d.getDay()+6)%7;d.setDate(d.getDate()-day);
   return d.toISOString().slice(0,10);
 }
@@ -1144,7 +1153,7 @@ function saveCardioLog(type){
   var d=document.getElementById('caDate').value||todayISO();
   var dur=parseInt(document.getElementById('caDur').value,10);
   var notes=(document.getElementById('caNotes').value||'').trim();
-  var entry={date:d,type:type};
+  var entry={date:d,type:type,week:weekNum()};
   if(dur&&dur>0)entry.duration=dur;
   if(notes)entry.notes=notes;
   if(type==='Run'){var dist=parseFloat(document.getElementById('caDist').value);if(dist&&dist>0)entry.distance=dist;}
