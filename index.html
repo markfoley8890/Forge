@@ -120,6 +120,17 @@ input,select{font-family:inherit}
 .actrow .am b{font-size:13.5px;font-weight:700}
 .actrow .am span{font-size:11.5px;color:var(--mut)}
 .actrow .ad{font-size:11.5px;color:var(--mut2);white-space:nowrap}
+.histrow{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+.histrow:last-child{border-bottom:none}
+.histrow .hmain{flex:1;min-width:0}
+.histrow .hmain:active{opacity:.55}
+.histrow .hh{font-size:13px;font-weight:600;color:var(--mut)}
+.histrow .hh b{color:var(--txt);font-weight:800}
+.histrow .hs{font-size:11.5px;color:var(--mut2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.histdel{width:34px;height:34px;border-radius:9px;background:var(--card2);border:1px solid var(--line2);color:var(--mut2);font-size:20px;line-height:1;flex:none;padding:0}
+.histdel:active{color:var(--red);transform:scale(.92)}
+.exedit-block{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+.exedit-nm{font-weight:800;font-size:14px;margin-bottom:9px}
 /* plate calculator */
 .plateviz{display:flex;align-items:center;justify-content:center;gap:3px;min-height:84px;padding:10px 4px;
   background:var(--bg2);border:1px solid var(--line);border-radius:13px;margin:4px 0 12px;overflow-x:auto}
@@ -143,6 +154,13 @@ input,select{font-family:inherit}
 .seg button{flex:1;padding:11px 6px;border-radius:9px;color:var(--mut);font-weight:700;font-size:13px;background:transparent;transition:.18s}
 .seg button.on{background:var(--volt);color:#10140a}
 .seg.teal button.on{background:var(--teal);color:#06212a}
+.liftselect{width:100%;-webkit-appearance:none;appearance:none;background-color:var(--bg2);
+  border:1px solid var(--line);border-radius:12px;color:var(--txt);font-family:inherit;font-weight:700;
+  font-size:14px;padding:13px 42px 13px 14px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2339D0D8' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;background-size:16px}
+.liftselect:focus{outline:none;border-color:var(--teal)}
+.liftselect option{background:var(--card);color:var(--txt);font-weight:600}
 
 .blockbanner{display:flex;gap:11px;align-items:center;background:linear-gradient(120deg,#16202e,#1a2433);
   border:1px solid var(--line);border-radius:14px;padding:13px 15px;margin-bottom:14px}
@@ -379,10 +397,11 @@ input,select{font-family:inherit}
   </div>
   <div class="card chartcard">
     <h3>Strength</h3><div class="sub">Estimated 1-rep max over time</div>
-    <div class="seg teal" id="liftSeg" style="margin-top:4px"></div>
+    <select id="liftSelect" class="liftselect" onchange="pickLift(this.value)" style="margin-top:4px;display:none"></select>
     <div id="strChart" class="chartbox"></div>
   </div>
   <div id="activityCard"></div>
+  <div id="historyCard"></div>
 </section>
 
 <!-- PLAN -->
@@ -924,13 +943,15 @@ function renderStats(){
   else{wc.style.display='none';}
   // activity (runs & surfs)
   renderActivity();
-  // lift selector
+  renderHistory();
+  // lift selector (dropdown — full names, no horizontal overflow)
   var lifts=allLifts();
-  var seg=document.getElementById('liftSeg');
-  if(!lifts.length){seg.innerHTML='';document.getElementById('strChart').innerHTML='<div class="empty">Finish a workout to track strength gains</div>';return;}
+  var sel=document.getElementById('liftSelect');
+  if(!lifts.length){sel.style.display='none';document.getElementById('strChart').innerHTML='<div class="empty">Finish a workout to track strength gains</div>';return;}
   if(lifts.indexOf(selLift)<0)selLift=lifts[0];
-  var sh='';for(var L=0;L<lifts.length;L++)sh+='<button class="'+(lifts[L]===selLift?'on':'')+'" onclick="pickLift(\''+lifts[L].replace(/'/g,"\\'")+'\')">'+esc(lifts[L].split(' ')[0])+'</button>';
-  seg.innerHTML=sh;
+  var opts='';
+  for(var L=0;L<lifts.length;L++){var nm=esc(lifts[L]).replace(/"/g,'&quot;');opts+='<option value="'+nm+'"'+(lifts[L]===selLift?' selected':'')+'>'+esc(lifts[L])+'</option>';}
+  sel.innerHTML=opts;sel.value=selLift;sel.style.display='';
   renderStrChart();
 }
 function renderActivity(){
@@ -957,6 +978,7 @@ function renderActivity(){
     +'<div class="actlist">'+rows+'</div></div>';
 }
 function fmtShortDate(iso){var d=new Date(iso+'T00:00:00');return (d.getMonth()+1)+'/'+d.getDate();}
+function fmtNiceDate(iso){var M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];var d=new Date(iso+'T00:00:00');return d.getDate()+' '+M[d.getMonth()];}
 function delCardio(date,idx){
   // remove by matching date+position safely
   var match=[];for(var i=0;i<DATA.cardio.length;i++)if(DATA.cardio[i].date===date)match.push(i);
@@ -964,6 +986,97 @@ function delCardio(date,idx){
   if(!confirm('Delete this logged session?'))return;
   DATA.cardio.splice(match[match.length-1],1);
   save();renderStats();
+}
+
+/* ---- workout history: view, edit, delete saved sessions ---- */
+function setSummary(ex){
+  if(!ex||!ex.sets||!ex.sets.length)return '';
+  var top=ex.sets[0];
+  for(var i=1;i<ex.sets.length;i++){ // show the heaviest set as the headline
+    if(ex.type==='wr'){ if((ex.sets[i].weight||0)>(top.weight||0))top=ex.sets[i]; }
+    else if((ex.sets[i].reps||0)>(top.reps||0))top=ex.sets[i];
+  }
+  if(ex.type==='time')return top.reps+'s';
+  if(ex.type==='reps')return top.reps;
+  return (top.weight?top.weight+'kg':'')+(top.weight&&top.reps?'×'+top.reps:(top.reps?top.reps:''));
+}
+function renderHistory(){
+  var el=document.getElementById('historyCard');
+  if(!DATA.sessions.length){el.innerHTML='';return;}
+  var arr=DATA.sessions.map(function(s,i){return {i:i,s:s};});
+  arr.sort(function(a,b){return a.s.date<b.s.date?1:(a.s.date>b.s.date?-1:b.i-a.i);});
+  var rows='';
+  for(var k=0;k<arr.length;k++){
+    var i=arr[k].i,s=arr[k].s;
+    var names=s.exercises.map(function(x){return x.name;});
+    var summ=names.slice(0,3).join(', ')+(names.length>3?' +'+(names.length-3):'');
+    var wk=(s.week!=null?s.week:entryWeek(s));
+    rows+='<div class="histrow"><div class="hmain" onclick="openSessionEdit('+i+')">'
+      +'<div class="hh"><b>'+(DAY_META[s.day]?DAY_META[s.day].title.split('—')[0].trim():('Day '+s.day))+'</b> · Wk'+wk+' · '+fmtNiceDate(s.date)+'</div>'
+      +'<div class="hs">'+esc(summ||'—')+'</div></div>'
+      +'<button class="histdel" onclick="deleteSession('+i+')" aria-label="Delete workout">&times;</button></div>';
+  }
+  el.innerHTML='<div class="card"><div class="wkhead" style="display:flex;justify-content:space-between;margin-bottom:10px">'
+    +'<span class="eyebrow" style="margin:0">Workout History</span>'
+    +'<span class="done" style="font-size:12px;color:var(--mut);font-weight:700">'+DATA.sessions.length+' logged</span></div>'
+    +'<div class="histlist">'+rows+'</div><div style="font-size:11px;color:var(--mut2);margin-top:8px">Tap a workout to fix weights/reps, or ✕ to delete.</div></div>';
+}
+var editIdx=-1,editDraft=null;
+function openSessionEdit(idx){
+  editIdx=idx;var s=DATA.sessions[idx];
+  editDraft=JSON.parse(JSON.stringify(s.exercises));
+  for(var e=0;e<editDraft.length;e++){if(!editDraft[e].sets||!editDraft[e].sets.length)editDraft[e].sets=[{weight:'',reps:''}];}
+  var wk=(s.week!=null?s.week:entryWeek(s));
+  var hdr=(DAY_META[s.day]?DAY_META[s.day].title.split('—')[0].trim():('Day '+s.day))+' · Week '+wk+' · '+fmtNiceDate(s.date);
+  var sheet=document.getElementById('settingsSheet');
+  sheet.innerHTML='<div class="grip"></div><h2>EDIT WORKOUT</h2>'
+    +'<div class="note">'+esc(hdr)+'. Fix any weights or reps and save. Clear a set\'s reps to drop it.</div>'
+    +'<div id="editBody"></div>'
+    +'<button class="btn" onclick="saveSessionEdit()">Save changes</button>'
+    +'<div class="dangerrow"><button class="btn danger" onclick="deleteSession('+idx+')">Delete this workout</button></div>';
+  document.getElementById('settingsModal').classList.add('on');
+  renderEditBody();
+}
+function renderEditBody(){
+  var html='';
+  for(var e=0;e<editDraft.length;e++){
+    var ex=editDraft[e],isTime=ex.type==='time',isReps=ex.type==='reps';
+    html+='<div class="exedit-block"><div class="exedit-nm">'+esc(ex.name)+'</div>';
+    for(var s=0;s<ex.sets.length;s++){
+      var st=ex.sets[s];
+      html+='<div class="setrow"><div class="sn">'+(s+1)+'</div>';
+      if(isTime||isReps){
+        html+='<div class="fieldwrap" style="grid-column:span 2"><input inputmode="numeric" data-e="'+e+'" data-s="'+s+'" data-f="reps" value="'+(st.reps!=null?st.reps:'')+'" oninput="setEditVal(this)"><span class="u">'+(isTime?'SEC':'REPS')+'</span></div>';
+      }else{
+        html+='<div class="fieldwrap"><input inputmode="decimal" data-e="'+e+'" data-s="'+s+'" data-f="weight" value="'+(st.weight!=null?st.weight:'')+'" oninput="setEditVal(this)"><span class="u">KG</span></div>';
+        html+='<div class="fieldwrap"><input inputmode="numeric" data-e="'+e+'" data-s="'+s+'" data-f="reps" value="'+(st.reps!=null?st.reps:'')+'" oninput="setEditVal(this)"><span class="u">REPS</span></div>';
+      }
+      html+='<button class="delset" onclick="delEditSet('+e+','+s+')">&minus;</button></div>';
+    }
+    html+='<button class="addset" onclick="addEditSet('+e+')">+ add set</button></div>';
+  }
+  document.getElementById('editBody').innerHTML=html;
+}
+function setEditVal(el){var e=+el.getAttribute('data-e'),s=+el.getAttribute('data-s'),f=el.getAttribute('data-f');editDraft[e].sets[s][f]=el.value;}
+function addEditSet(e){var sets=editDraft[e].sets,p=sets[sets.length-1]||{};sets.push({weight:p.weight||'',reps:''});renderEditBody();}
+function delEditSet(e,s){if(editDraft[e].sets.length<=1)return;editDraft[e].sets.splice(s,1);renderEditBody();}
+function saveSessionEdit(){
+  var idx=editIdx,s=DATA.sessions[idx];if(!s)return;
+  var logged=[];
+  for(var e=0;e<editDraft.length;e++){
+    var sets=[];
+    for(var k=0;k<editDraft[e].sets.length;k++){
+      var st=editDraft[e].sets[k],w=parseFloat(st.weight)||0,r=parseInt(st.reps,10)||0;
+      if(r>0)sets.push({weight:w,reps:r});
+    }
+    if(sets.length)logged.push({name:editDraft[e].name,type:editDraft[e].type,sets:sets});
+  }
+  if(!logged.length){DATA.sessions.splice(idx,1);save();closeModal();toast('Workout removed');renderStats();renderHome();return;}
+  s.exercises=logged;save();closeModal();toast('Workout updated');renderStats();renderHome();
+}
+function deleteSession(idx){
+  if(!confirm('Delete this whole workout? This can\'t be undone.'))return;
+  DATA.sessions.splice(idx,1);save();closeModal();toast('Workout deleted');renderStats();renderHome();
 }
 function pickLift(n){selLift=n;renderStats();}
 function renderStrChart(){
