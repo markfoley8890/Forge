@@ -177,10 +177,31 @@ input,select{font-family:inherit}
 .ex .nm{font-weight:800;font-size:15.5px}
 .ex .tg{font-size:11.5px;color:var(--teal);font-weight:700;white-space:nowrap}
 .ex .last{font-size:12px;color:var(--mut);margin:6px 0 11px;display:flex;align-items:center;gap:6px}
+.exmeta{display:flex;gap:8px;flex-wrap:wrap;margin:7px 0 2px}
+.exmeta span{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--mut);background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:4px 9px}
+.exmeta span b{color:var(--txt);font-weight:700}
+.exmeta svg{width:13px;height:13px;color:var(--teal);stroke-linecap:round;stroke-linejoin:round}
 .ex .last b{color:var(--txt);font-weight:700}
 .ex .last.none{color:var(--mut2)}
 .setrow{display:grid;grid-template-columns:30px 1fr 1fr 34px;gap:8px;align-items:center;margin-bottom:8px}
 .setrow .sn{font-family:'Bebas Neue';font-size:19px;color:var(--mut2);text-align:center}
+button.sn{background:var(--bg2);border:1px solid var(--line);border-radius:99px;width:34px;height:34px;padding:0;display:grid;place-items:center;cursor:pointer;justify-self:center}
+button.sn:active{transform:scale(.9)}
+.setrow .sn.on{background:var(--volt);border-color:var(--volt);color:#10130a;font-size:15px;font-weight:900;font-family:'Manrope'}
+.setrow.rowdone .fieldwrap{opacity:.45}
+.last.lastcopy{width:100%;background:transparent;border:none;padding:0;text-align:left;font-family:inherit;cursor:pointer}
+.last.lastcopy:active{opacity:.55}
+.last .lhint{margin-left:auto;font-size:10px;color:var(--mut2);border:1px solid var(--line);border-radius:99px;padding:2px 8px;white-space:nowrap}
+.ex.exdone{display:flex;align-items:center;gap:10px;padding:13px 15px;cursor:pointer}
+.ex.exdone:active{opacity:.6}
+.ex.exdone .dchk{width:22px;height:22px;border-radius:99px;background:var(--volt);color:#10130a;font-weight:900;display:grid;place-items:center;font-size:12px;flex:none}
+.ex.exdone .dnm{font-weight:800;font-size:14.5px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ex.exdone .dsum{font-size:11.5px;color:var(--mut);white-space:nowrap}
+.savedbadge{width:46px;height:46px;border-radius:99px;background:var(--volt);color:#10130a;display:grid;place-items:center;font-size:22px;font-weight:900;margin:4px auto 10px}
+.sumbox{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:2px 14px;margin:12px 0 14px}
+.sumrow{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);font-size:13.5px;color:var(--mut)}
+.sumrow:last-child{border-bottom:none}
+.sumrow b{color:var(--txt)}
 .fieldwrap{position:relative}
 .fieldwrap input{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:10px;
   color:var(--txt);font-size:16px;font-weight:700;padding:11px 11px 11px 11px;text-align:center}
@@ -456,22 +477,22 @@ function todayISO(){return new Date().toISOString().slice(0,10);}
 /* ---------------- program data (defined before defaults so seeding works) ---------------- */
 var DAY_META={A:{title:"Day A — Squat focus"},B:{title:"Day B — Deadlift focus"},C:{title:"Day C — Push / Pull"}};
 var DEFAULT_PLAN={
-  A:[{n:"Back squat",t:"3–4 × 6–8",type:"wr"},
-     {n:"Bench press",t:"3 × 6–10",type:"wr"},
-     {n:"Seated cable row",t:"3 × 8–12",type:"wr"},
-     {n:"Romanian deadlift",t:"3 × 8–10",type:"wr"},
-     {n:"Plank",t:"3 × 30–60s",type:"time"}],
-  B:[{n:"Deadlift",t:"3 × 5",type:"wr"},
-     {n:"Overhead press",t:"3 × 6–10",type:"wr"},
-     {n:"Pull-ups",t:"3 × 6–12",type:"wr"},
-     {n:"Walking lunges",t:"3 × 10–12/leg",type:"wr"},
-     {n:"Hanging knee raise",t:"3 × 10–15",type:"wr"}],
-  C:[{n:"Front squat",t:"3 × 8–10",type:"wr"},
-     {n:"Incline DB press",t:"3 × 8–12",type:"wr"},
-     {n:"Chest-supported row",t:"3 × 10–12",type:"wr"},
-     {n:"Hip thrust",t:"3 × 10–12",type:"wr"},
-     {n:"Face pulls",t:"3 × 12–15",type:"wr"},
-     {n:"Biceps + triceps (opt)",t:"2 × 12",type:"wr"}]
+  A:[{n:"Back squat",t:"3–4 × 6–8",type:"wr",tempo:"3-1-1",rest:"2–3 min"},
+     {n:"Bench press",t:"3 × 6–10",type:"wr",tempo:"3-1-1",rest:"2–3 min"},
+     {n:"Seated cable row",t:"3 × 8–12",type:"wr",tempo:"2-1-2",rest:"90s"},
+     {n:"Romanian deadlift",t:"3 × 8–10",type:"wr",tempo:"3-1-1",rest:"90s"},
+     {n:"Plank",t:"3 × 30–60s",type:"time",tempo:"hold",rest:"60s"}],
+  B:[{n:"Deadlift",t:"3 × 5",type:"wr",tempo:"2-1-1",rest:"3 min"},
+     {n:"Overhead press",t:"3 × 6–10",type:"wr",tempo:"3-1-1",rest:"2–3 min"},
+     {n:"Pull-ups",t:"3 × 6–12",type:"wr",tempo:"3-1-1",rest:"2 min"},
+     {n:"Walking lunges",t:"3 × 10–12/leg",type:"wr",tempo:"2-0-1",rest:"90s"},
+     {n:"Hanging knee raise",t:"3 × 10–15",type:"wr",tempo:"2-1-1",rest:"60s"}],
+  C:[{n:"Front squat",t:"3 × 8–10",type:"wr",tempo:"3-1-1",rest:"2 min"},
+     {n:"Incline DB press",t:"3 × 8–12",type:"wr",tempo:"3-1-1",rest:"90s"},
+     {n:"Chest-supported row",t:"3 × 10–12",type:"wr",tempo:"2-1-2",rest:"90s"},
+     {n:"Hip thrust",t:"3 × 10–12",type:"wr",tempo:"2-1-1",rest:"90s"},
+     {n:"Face pulls",t:"3 × 12–15",type:"wr",tempo:"2-1-2",rest:"60s"},
+     {n:"Biceps + triceps (opt)",t:"2 × 12",type:"wr",tempo:"2-0-1",rest:"60s"}]
 };
 function clonePlan(){return JSON.parse(JSON.stringify(DEFAULT_PLAN));}
 function planFor(day){return DATA.plan[day]||DEFAULT_PLAN[day];}
@@ -490,6 +511,17 @@ var DATA=load(); if(!DATA){DATA=defaults();save();}
 if(!DATA.plan){DATA.plan=clonePlan();save();}
 if(!DATA.cardio){DATA.cardio=[];save();} // run/surf log added later
 if(DATA.weekShift==null){DATA.weekShift=0;save();} // manual week nav added later
+// tempo/rest added later: fill them onto plan exercises lacking them (match defaults by name)
+function backfillTempoRest(plan){var changed=false;['A','B','C'].forEach(function(d){
+  (plan[d]||[]).forEach(function(ex){
+    if(ex.tempo==null||ex.rest==null){
+      var def=(DEFAULT_PLAN[d]||[]).filter(function(x){return x.n===ex.n;})[0];
+      if(ex.tempo==null){ex.tempo=def?def.tempo:'';changed=true;}
+      if(ex.rest==null){ex.rest=def?def.rest:'';changed=true;}
+    }
+  });
+});return changed;}
+if(DATA.plan&&backfillTempoRest(DATA.plan))save();
 if(!persistent)document.getElementById('storeBanner').classList.add('on');
 
 function calWeek(){
@@ -531,11 +563,24 @@ function go(s){
   var nb=document.querySelectorAll('#nav button');
   for(var j=0;j<nb.length;j++)nb[j].classList.toggle('on',nb[j].getAttribute('data-s')===s);
   window.scrollTo(0,0);
+  if(s==='train')acquireWake();else releaseWake(); // keep the screen on while training
   if(s==='home')renderHome();
   if(s==='stats')renderStats();
   if(s==='plan')renderPlan();
   if(s==='food')renderFood();
 }
+/* screen wake lock: stops the phone locking between sets (re-acquired when the app returns) */
+var wakeLock=null;
+function acquireWake(){
+  if(!('wakeLock' in navigator)||document.visibilityState!=='visible')return;
+  navigator.wakeLock.request('screen').then(function(l){wakeLock=l;}).catch(function(){});
+}
+function releaseWake(){
+  if(wakeLock){try{wakeLock.release();}catch(e){}wakeLock=null;}
+}
+document.addEventListener('visibilitychange',function(){
+  if(!document.hidden&&current==='train')acquireWake();
+});
 function nextDay(){
   if(!DATA.sessions.length)return "A";
   var last=DATA.sessions[DATA.sessions.length-1].day;
@@ -648,7 +693,7 @@ function blankSets(day){
       var p=prev&&prev[k]?prev[k]:{};
       sets.push({weight:p.weight||'',reps:''});
     }
-    out.push({name:list[j].n,type:list[j].type,sets:sets,target:list[j].t});
+    out.push({name:list[j].n,type:list[j].type,sets:sets,target:list[j].t,tempo:list[j].tempo||'',rest:list[j].rest||''});
   }
   return out;
 }
@@ -666,18 +711,36 @@ function renderTrain(day){
   if(last)for(var i=0;i<last.exercises.length;i++)lmap[last.exercises[i].name]=last.exercises[i];
   var html='';
   var exs=draft[day];
+  var planList=planFor(day);
+  for(var bi=0;bi<exs.length;bi++){ // backfill tempo/rest onto an older draft from the plan
+    if(exs[bi].tempo==null||exs[bi].rest==null){
+      var pd=planList.filter(function(p){return p.n===exs[bi].name;})[0];
+      if(exs[bi].tempo==null)exs[bi].tempo=pd?pd.tempo:'';
+      if(exs[bi].rest==null)exs[bi].rest=pd?pd.rest:'';
+    }
+  }
   for(var e=0;e<exs.length;e++){
     var ex=exs[e],isTime=ex.type==='time',isReps=ex.type==='reps';
+    // collapse the card to one line once every set is ticked (tap to re-open)
+    var exAllDone=ex.sets.length>0;
+    for(var ad=0;ad<ex.sets.length;ad++)if(!ex.sets[ad].done){exAllDone=false;break;}
+    if(exAllDone&&!ex.open){
+      var doneSets=[];for(var ds=0;ds<ex.sets.length;ds++)if(ex.sets[ds].reps)doneSets.push(ex.sets[ds]);
+      html+='<div class="ex exdone" onclick="expandEx(\''+day+'\','+e+')">'
+        +'<span class="dchk">&#10003;</span><div class="dnm">'+esc(ex.name)+'</div>'
+        +'<div class="dsum">'+esc(fmtSets(doneSets,ex.type))+'</div></div>';
+      continue;
+    }
     var lastTxt;
     if(lmap[ex.name]&&lmap[ex.name].sets.length){
-      lastTxt='<div class="last"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#39D0D8" stroke-width="2"><path d="M3 3v5h5"/><path d="M3 8a9 9 0 1 0 2-3"/></svg>Last: <b>'+esc(fmtSets(lmap[ex.name].sets,ex.type))+'</b></div>';
+      lastTxt='<button class="last lastcopy" onclick="copyLast(\''+day+'\','+e+')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#39D0D8" stroke-width="2"><path d="M3 3v5h5"/><path d="M3 8a9 9 0 1 0 2-3"/></svg>Last: <b>'+esc(fmtSets(lmap[ex.name].sets,ex.type))+'</b><span class="lhint">tap to fill</span></button>';
     }else{
       lastTxt='<div class="last none">No previous data — set your baseline</div>';
     }
     var rows='';
     for(var s=0;s<ex.sets.length;s++){
       var st=ex.sets[s];
-      rows+='<div class="setrow"><div class="sn">'+(s+1)+'</div>';
+      rows+='<div class="setrow'+(st.done?' rowdone':'')+'"><button class="sn'+(st.done?' on':'')+'" onclick="toggleSetDone(\''+day+'\','+e+','+s+')" aria-label="Mark set done">'+(st.done?'&#10003;':(s+1))+'</button>';
       if(isTime){
         rows+='<div class="fieldwrap" style="grid-column:span 2"><input inputmode="numeric" data-d="'+day+'" data-e="'+e+'" data-s="'+s+'" data-f="reps" value="'+(st.reps||'')+'" placeholder="0" oninput="setVal(this)"><span class="u">SEC</span></div>';
       }else if(isReps){
@@ -692,11 +755,18 @@ function renderTrain(day){
     if(isTime)colh='<div class="colhead"><span>#</span><span style="grid-column:span 2">Time held</span><span></span></div>';
     else if(isReps)colh='<div class="colhead"><span>#</span><span style="grid-column:span 2">Reps</span><span></span></div>';
     else colh='<div class="colhead"><span>#</span><span>Weight</span><span>Reps</span><span></span></div>';
+    var meta='';
+    if(ex.tempo||ex.rest){
+      meta='<div class="exmeta">'
+        +(ex.tempo?'<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>Tempo <b>'+esc(ex.tempo)+'</b></span>':'')
+        +(ex.rest?'<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l2 5 4-10 2 5h6"/></svg>Rest <b>'+esc(ex.rest)+'</b></span>':'')
+        +'</div>';
+    }
     html+='<div class="ex"><div class="top"><div class="nm">'+esc(ex.name)+'</div>'
       +'<button class="exedit" onclick="openExEdit(\''+day+'\','+e+')" aria-label="Edit exercise">'
       +'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>'
       +'<span class="tg">'+esc(ex.target)+'</span></button></div>'
-      +lastTxt+colh+rows
+      +meta+lastTxt+colh+rows
       +'<button class="addset" onclick="addSet(\''+day+'\','+e+')">+ add set</button></div>';
   }
   html+='<button class="addex" onclick="openExAdd(\''+day+'\')">'
@@ -726,6 +796,60 @@ function delSet(d,e,s){
   renderTrain(d);
 }
 
+/* ---- one-tap set completion: tick the circle -> auto-fill from last if empty, start that exercise's rest ---- */
+function parseRestSeconds(r){
+  if(!r)return 90;
+  var nums=String(r).match(/\d+(?:\.\d+)?/g);
+  if(!nums)return 90;
+  var n=parseFloat(nums[nums.length-1]); // ranges like "2–3 min" use the top end
+  return Math.round(/min/i.test(r)?n*60:n);
+}
+function lastExFor(day,name){
+  var last=lastSession(day);
+  if(last)for(var i=0;i<last.exercises.length;i++)if(last.exercises[i].name===name)return last.exercises[i];
+  return null;
+}
+function draftAllDone(day){
+  var exs=draft[day];if(!exs||!exs.length)return false;
+  for(var i=0;i<exs.length;i++){
+    if(!exs[i].sets.length)return false;
+    for(var k=0;k<exs[i].sets.length;k++)if(!exs[i].sets[k].done)return false;
+  }
+  return true;
+}
+function toggleSetDone(day,e,s){
+  var ex=draft[day][e],st=ex.sets[s];
+  if(st.done){st.done=false;saveDraft();renderTrain(day);return;}
+  if(!st.reps||(ex.type==='wr'&&!st.weight)){ // fill blanks from last session's matching set
+    var lm=lastExFor(day,ex.name);
+    if(lm&&lm.sets[s]){
+      if(!st.reps&&lm.sets[s].reps!=null)st.reps=String(lm.sets[s].reps);
+      if(ex.type==='wr'&&!st.weight&&lm.sets[s].weight)st.weight=String(lm.sets[s].weight);
+    }
+  }
+  if(!st.reps){toast('Enter reps first');return;}
+  st.done=true;
+  var exAll=true;for(var k=0;k<ex.sets.length;k++)if(!ex.sets[k].done){exAll=false;break;}
+  if(exAll)ex.open=false; // finished exercise folds down
+  saveDraft();
+  renderTrain(day);
+  if(draftAllDone(day)){toast('All sets done — Finish & save');return;} // no timer after the final set
+  startTimer(parseRestSeconds(ex.rest));
+}
+function copyLast(day,e){
+  var ex=draft[day][e],lm=lastExFor(day,ex.name);
+  if(!lm||!lm.sets.length){toast('No previous data');return;}
+  for(var k=0;k<lm.sets.length;k++){
+    if(!ex.sets[k])ex.sets[k]={weight:'',reps:''};
+    if(ex.type==='wr')ex.sets[k].weight=lm.sets[k].weight?String(lm.sets[k].weight):'';
+    ex.sets[k].reps=lm.sets[k].reps!=null?String(lm.sets[k].reps):'';
+  }
+  saveDraft();
+  renderTrain(day);
+  toast('Filled from last session');
+}
+function expandEx(day,e){draft[day][e].open=true;saveDraft();renderTrain(day);}
+
 /* ---- add / change exercise (persists to that day's plan going forward) ---- */
 var exEditType='wr';
 function typeSegHtml(sel){
@@ -738,6 +862,8 @@ function exSheet(opts){
   sheet.innerHTML='<div class="grip"></div><h2>'+opts.title+'</h2>'
     +'<div class="field"><label>Exercise name</label><input type="text" id="exName" value="'+esc(opts.name||'').replace(/"/g,'&quot;')+'" placeholder="e.g. Sit-ups" autocomplete="off"></div>'
     +'<div class="field"><label>Target (sets × reps)</label><input type="text" id="exTarget" value="'+esc(opts.target||'').replace(/"/g,'&quot;')+'" placeholder="e.g. 3 × 15" autocomplete="off"></div>'
+    +'<div class="field row2"><div><label>Tempo — optional</label><input type="text" id="exTempo" value="'+esc(opts.tempo||'').replace(/"/g,'&quot;')+'" placeholder="e.g. 3-1-1" autocomplete="off"></div>'
+    +'<div><label>Rest — optional</label><input type="text" id="exRest" value="'+esc(opts.rest||'').replace(/"/g,'&quot;')+'" placeholder="e.g. 90s" autocomplete="off"></div></div>'
     +'<div class="field"><label>Logging type</label><div id="typeSegWrap">'+typeSegHtml(exEditType)+'</div></div>'
     +(opts.add?'<div class="field"><label>Number of sets</label><input type="number" inputmode="numeric" id="exSets" value="3" min="1" max="10"></div>':'')
     +'<button class="btn" onclick="'+opts.onsave+'">'+opts.savelabel+'</button>'
@@ -748,23 +874,25 @@ function exSheet(opts){
 function openExEdit(day,e){
   var ex=draft[day][e];
   exEditType=ex.type||'wr';
-  exSheet({title:'EDIT EXERCISE',name:ex.name,target:ex.target,day:day,idx:e,add:false,
+  exSheet({title:'EDIT EXERCISE',name:ex.name,target:ex.target,tempo:ex.tempo,rest:ex.rest,day:day,idx:e,add:false,
     onsave:'saveExEdit(\''+day+'\','+e+')',savelabel:'Save changes'});
 }
 function openExAdd(day){
   exEditType='wr';
-  exSheet({title:'ADD EXERCISE',name:'',target:'3 × 12',day:day,add:true,
+  exSheet({title:'ADD EXERCISE',name:'',target:'3 × 12',tempo:'',rest:'90s',day:day,add:true,
     onsave:'saveExAdd(\''+day+'\')',savelabel:'Add to workout'});
 }
 function readExForm(){
   var name=(document.getElementById('exName').value||'').trim();
   var target=(document.getElementById('exTarget').value||'').trim();
   if(!name){toast('Give the exercise a name');return null;}
-  return {name:name,target:target||'—',type:exEditType};
+  return {name:name,target:target||'—',type:exEditType,
+    tempo:(document.getElementById('exTempo').value||'').trim(),
+    rest:(document.getElementById('exRest').value||'').trim()};
 }
 function syncPlanFromDraft(day){
-  // keep the saved plan in lockstep with the current draft's exercise list (names/targets/types)
-  DATA.plan[day]=draft[day].map(function(x){return {n:x.name,t:x.target,type:x.type};});
+  // keep the saved plan in lockstep with the current draft (names/targets/types/tempo/rest)
+  DATA.plan[day]=draft[day].map(function(x){return {n:x.name,t:x.target,type:x.type,tempo:x.tempo||'',rest:x.rest||''};});
   save();
   saveDraft();
 }
@@ -772,7 +900,7 @@ function saveExEdit(day,e){
   var f=readExForm();if(!f)return;
   var ex=draft[day][e];
   var typeChanged=ex.type!==f.type;
-  ex.name=f.name;ex.target=f.target;ex.type=f.type;
+  ex.name=f.name;ex.target=f.target;ex.type=f.type;ex.tempo=f.tempo;ex.rest=f.rest;
   if(typeChanged)for(var s=0;s<ex.sets.length;s++){ex.sets[s]={weight:'',reps:''};} // clear values when units change
   syncPlanFromDraft(day);
   closeModal();renderTrain(day);toast('Exercise updated');
@@ -781,7 +909,7 @@ function saveExAdd(day){
   var f=readExForm();if(!f)return;
   var nSets=Math.max(1,Math.min(10,parseInt(document.getElementById('exSets').value,10)||3));
   var sets=[];for(var i=0;i<nSets;i++)sets.push({weight:'',reps:''});
-  draft[day].push({name:f.name,target:f.target,type:f.type,sets:sets});
+  draft[day].push({name:f.name,target:f.target,type:f.type,tempo:f.tempo,rest:f.rest,sets:sets});
   syncPlanFromDraft(day);
   closeModal();renderTrain(day);toast('Exercise added');
 }
@@ -822,13 +950,41 @@ function finishWorkout(){
     if(sets.length)logged.push({name:exs[e].name,type:exs[e].type,sets:sets});
   }
   if(!any){toast('Log at least one set first');return;}
-  DATA.sessions.push({date:todayISO(),day:day,week:weekNum(),exercises:logged});
+  var wk=weekNum(),dl=weekInfo(wk).deload;
+  DATA.sessions.push({date:todayISO(),day:day,week:wk,exercises:logged});
   save();
   delete draft[day];
   saveDraft();
   toggleTimer(false);
-  toast('Workout saved 💪');
   go('home');
+  showSaveSummary(day,wk,logged,dl);
+}
+function showSaveSummary(day,week,logged,deload){
+  var totalSets=0,vol=0;
+  for(var i=0;i<logged.length;i++)for(var k=0;k<logged[i].sets.length;k++){
+    totalSets++;
+    if(logged[i].type==='wr')vol+=(logged[i].sets[k].weight||0)*(logged[i].sets[k].reps||0);
+  }
+  var head='';
+  var main=null;
+  for(var m=0;m<logged.length;m++)if(logged[m].type==='wr'){main=logged[m];break;}
+  if(main){
+    var top=main.sets[0];
+    for(var t=1;t<main.sets.length;t++)if((main.sets[t].weight||0)>(top.weight||0))top=main.sets[t];
+    head='<div class="sumrow"><span>Top '+esc(main.name)+'</span><b>'+top.weight+' kg × '+top.reps+'</b></div>';
+  }
+  var sheet=document.getElementById('settingsSheet');
+  sheet.innerHTML='<div class="grip"></div><h2>WORKOUT SAVED</h2>'
+    +'<div class="savedbadge">&#10003;</div>'
+    +'<div class="note" style="text-align:center">'+(DAY_META[day]?DAY_META[day].title.split('—')[0].trim():'Day '+day)+' · Week '+week+(deload?' (deload)':'')+' · '+fmtNiceDate(todayISO())+'</div>'
+    +'<div class="sumbox">'
+    +'<div class="sumrow"><span>Exercises</span><b>'+logged.length+'</b></div>'
+    +'<div class="sumrow"><span>Sets logged</span><b>'+totalSets+'</b></div>'
+    +head
+    +(vol>0?'<div class="sumrow"><span>Total volume</span><b>'+Math.round(vol).toLocaleString()+' kg</b></div>':'')
+    +'</div>'
+    +'<button class="btn" onclick="closeModal()">Done</button>';
+  document.getElementById('settingsModal').classList.add('on');
 }
 
 /* ---------------- rest timer (timestamp-based: stays accurate through screen lock) ---------------- */
@@ -1375,6 +1531,7 @@ function importData(input){
       if(!d.cardio)d.cardio=[];      // backfill fields added in later versions
       if(!d.sessions)d.sessions=[];
       if(d.weekShift==null)d.weekShift=0;
+      backfillTempoRest(d.plan);
       DATA=d;save();closeModal();toast('Data imported');renderHome();
     }catch(e){toast('Invalid backup file');}
   };
