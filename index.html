@@ -181,6 +181,14 @@ input,select{font-family:inherit}
 .exmeta span{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--mut);background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:4px 9px}
 .exmeta span b{color:var(--txt);font-weight:700}
 .exmeta svg{width:13px;height:13px;color:var(--teal);stroke-linecap:round;stroke-linejoin:round}
+.exmeta a.vidlink,.exmeta button.wubtn{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--teal);background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:4px 9px;text-decoration:none;font-family:inherit;cursor:pointer}
+.exmeta a.vidlink:active,.exmeta button.wubtn:active{opacity:.6}
+.warmups{display:none;font-size:11.5px;color:var(--mut);background:var(--bg2);border:1px dashed var(--line2);border-radius:9px;padding:8px 11px;margin:7px 0 0;line-height:1.5}
+.warmups.on{display:block}
+.warmups b{color:var(--txt)}
+.cue{font-size:11.5px;color:var(--mut2);font-style:italic;margin:7px 0 0}
+.progbadge{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:800;color:var(--volt);background:rgba(198,255,61,.08);border:1px solid rgba(198,255,61,.35);border-radius:9px;padding:7px 11px;margin:8px 0 0}
+.progbadge svg{width:13px;height:13px;flex:none;stroke-linecap:round;stroke-linejoin:round}
 .ex .last b{color:var(--txt);font-weight:700}
 .ex .last.none{color:var(--mut2)}
 .setrow{display:grid;grid-template-columns:30px 1fr 1fr 34px;gap:8px;align-items:center;margin-bottom:8px}
@@ -477,22 +485,22 @@ function todayISO(){return new Date().toISOString().slice(0,10);}
 /* ---------------- program data (defined before defaults so seeding works) ---------------- */
 var DAY_META={A:{title:"Day A — Squat focus"},B:{title:"Day B — Deadlift focus"},C:{title:"Day C — Push / Pull"}};
 var DEFAULT_PLAN={
-  A:[{n:"Back squat",t:"3–4 × 6–8",type:"wr",tempo:"3-1-1",rest:"2–3 min"},
-     {n:"Bench press",t:"3 × 6–10",type:"wr",tempo:"3-1-1",rest:"2–3 min"},
-     {n:"Seated cable row",t:"3 × 8–12",type:"wr",tempo:"2-1-2",rest:"90s"},
-     {n:"Romanian deadlift",t:"3 × 8–10",type:"wr",tempo:"3-1-1",rest:"90s"},
-     {n:"Plank",t:"3 × 30–60s",type:"time",tempo:"hold",rest:"60s"}],
-  B:[{n:"Deadlift",t:"3 × 5",type:"wr",tempo:"2-1-1",rest:"3 min"},
-     {n:"Overhead press",t:"3 × 6–10",type:"wr",tempo:"3-1-1",rest:"2–3 min"},
-     {n:"Pull-ups",t:"3 × 6–12",type:"wr",tempo:"3-1-1",rest:"2 min"},
-     {n:"Walking lunges",t:"3 × 10–12/leg",type:"wr",tempo:"2-0-1",rest:"90s"},
-     {n:"Hanging knee raise",t:"3 × 10–15",type:"wr",tempo:"2-1-1",rest:"60s"}],
-  C:[{n:"Front squat",t:"3 × 8–10",type:"wr",tempo:"3-1-1",rest:"2 min"},
-     {n:"Incline DB press",t:"3 × 8–12",type:"wr",tempo:"3-1-1",rest:"90s"},
-     {n:"Chest-supported row",t:"3 × 10–12",type:"wr",tempo:"2-1-2",rest:"90s"},
-     {n:"Hip thrust",t:"3 × 10–12",type:"wr",tempo:"2-1-1",rest:"90s"},
-     {n:"Face pulls",t:"3 × 12–15",type:"wr",tempo:"2-1-2",rest:"60s"},
-     {n:"Biceps + triceps (opt)",t:"2 × 12",type:"wr",tempo:"2-0-1",rest:"60s"}]
+  A:[{n:"Back squat",t:"3–4 × 6–8",type:"wr",tempo:"3-1-1",rest:"2–3 min",rpe:"7–8",cue:"Brace hard, knees track over toes, hit depth"},
+     {n:"Bench press",t:"3 × 6–10",type:"wr",tempo:"3-1-1",rest:"2–3 min",rpe:"7–8",cue:"Shoulder blades pinned, feet planted, bar to mid-chest"},
+     {n:"Seated cable row",t:"3 × 8–12",type:"wr",tempo:"2-1-2",rest:"90s",rpe:"8",cue:"Chest tall, pull to sternum, squeeze 1s"},
+     {n:"Romanian deadlift",t:"3 × 8–10",type:"wr",tempo:"3-1-1",rest:"90s",rpe:"7–8",cue:"Hips back, flat back, bar close to legs"},
+     {n:"Plank",t:"3 × 30–60s",type:"time",tempo:"hold",rest:"60s",rpe:"8",cue:"Glutes on, ribs down, straight line"}],
+  B:[{n:"Deadlift",t:"3 × 5",type:"wr",tempo:"2-1-1",rest:"3 min",rpe:"7",cue:"Pull slack out, push the floor away, tall lockout"},
+     {n:"Overhead press",t:"3 × 6–10",type:"wr",tempo:"3-1-1",rest:"2–3 min",rpe:"7–8",cue:"Glutes tight, ribs down, head through at top"},
+     {n:"Pull-ups",t:"3 × 6–12",type:"wr",tempo:"3-1-1",rest:"2 min",rpe:"8",cue:"Full hang, chest up, no kipping"},
+     {n:"Walking lunges",t:"3 × 10–12/leg",type:"wr",tempo:"2-0-1",rest:"90s",rpe:"8",cue:"Long step, torso tall, soft knee touch"},
+     {n:"Hanging knee raise",t:"3 × 10–15",type:"wr",tempo:"2-1-1",rest:"60s",rpe:"8",cue:"Slow lower, no swinging"}],
+  C:[{n:"Front squat",t:"3 × 8–10",type:"wr",tempo:"3-1-1",rest:"2 min",rpe:"7–8",cue:"Elbows high, torso upright"},
+     {n:"Incline DB press",t:"3 × 8–12",type:"wr",tempo:"3-1-1",rest:"90s",rpe:"8",cue:"~45° bench, elbows ~45°, full stretch at bottom"},
+     {n:"Chest-supported row",t:"3 × 10–12",type:"wr",tempo:"2-1-2",rest:"90s",rpe:"8",cue:"Squeeze shoulder blades 1s at top"},
+     {n:"Hip thrust",t:"3 × 10–12",type:"wr",tempo:"2-1-1",rest:"90s",rpe:"8",cue:"Chin tucked, full lockout, squeeze glutes"},
+     {n:"Face pulls",t:"3 × 12–15",type:"wr",tempo:"2-1-2",rest:"60s",rpe:"8–9",cue:"Pull to eyes, elbows high, rotate out"},
+     {n:"Biceps + triceps (opt)",t:"2 × 12",type:"wr",tempo:"2-0-1",rest:"60s",rpe:"8–9",cue:"Strict form, full range"}]
 };
 function clonePlan(){return JSON.parse(JSON.stringify(DEFAULT_PLAN));}
 function planFor(day){return DATA.plan[day]||DEFAULT_PLAN[day];}
@@ -511,13 +519,16 @@ var DATA=load(); if(!DATA){DATA=defaults();save();}
 if(!DATA.plan){DATA.plan=clonePlan();save();}
 if(!DATA.cardio){DATA.cardio=[];save();} // run/surf log added later
 if(DATA.weekShift==null){DATA.weekShift=0;save();} // manual week nav added later
-// tempo/rest added later: fill them onto plan exercises lacking them (match defaults by name)
+// tempo/rest/rpe/cue added later: fill them onto plan exercises lacking them (match defaults by name)
 function backfillTempoRest(plan){var changed=false;['A','B','C'].forEach(function(d){
   (plan[d]||[]).forEach(function(ex){
-    if(ex.tempo==null||ex.rest==null){
+    if(ex.tempo==null||ex.rest==null||ex.rpe==null||ex.cue==null||ex.setreps==null){
       var def=(DEFAULT_PLAN[d]||[]).filter(function(x){return x.n===ex.n;})[0];
       if(ex.tempo==null){ex.tempo=def?def.tempo:'';changed=true;}
       if(ex.rest==null){ex.rest=def?def.rest:'';changed=true;}
+      if(ex.rpe==null){ex.rpe=def?def.rpe:'';changed=true;}
+      if(ex.cue==null){ex.cue=def?def.cue:'';changed=true;}
+      if(ex.setreps==null){ex.setreps='';changed=true;}
     }
   });
 });return changed;}
@@ -687,13 +698,14 @@ function blankSets(day){
   var out=[];
   for(var j=0;j<list.length;j++){
     var prev=map[list[j].n];
-    var n=prev?prev.length:3;
+    var srN=list[j].setreps?String(list[j].setreps).split(/[\/,\s]+/).filter(function(x){return x;}).length:0;
+    var n=prev?prev.length:(srN||3); // per-set rep scheme sets the default set count
     var sets=[];
     for(var k=0;k<n;k++){
       var p=prev&&prev[k]?prev[k]:{};
       sets.push({weight:p.weight||'',reps:''});
     }
-    out.push({name:list[j].n,type:list[j].type,sets:sets,target:list[j].t,tempo:list[j].tempo||'',rest:list[j].rest||''});
+    out.push({name:list[j].n,type:list[j].type,sets:sets,target:list[j].t,tempo:list[j].tempo||'',rest:list[j].rest||'',rpe:list[j].rpe||'',cue:list[j].cue||'',setreps:list[j].setreps||''});
   }
   return out;
 }
@@ -712,15 +724,20 @@ function renderTrain(day){
   var html='';
   var exs=draft[day];
   var planList=planFor(day);
-  for(var bi=0;bi<exs.length;bi++){ // backfill tempo/rest onto an older draft from the plan
-    if(exs[bi].tempo==null||exs[bi].rest==null){
+  for(var bi=0;bi<exs.length;bi++){ // backfill program fields onto an older draft from the plan
+    if(exs[bi].tempo==null||exs[bi].rest==null||exs[bi].rpe==null||exs[bi].cue==null||exs[bi].setreps==null){
       var pd=planList.filter(function(p){return p.n===exs[bi].name;})[0];
       if(exs[bi].tempo==null)exs[bi].tempo=pd?pd.tempo:'';
       if(exs[bi].rest==null)exs[bi].rest=pd?pd.rest:'';
+      if(exs[bi].rpe==null)exs[bi].rpe=pd&&pd.rpe?pd.rpe:'';
+      if(exs[bi].cue==null)exs[bi].cue=pd&&pd.cue?pd.cue:'';
+      if(exs[bi].setreps==null)exs[bi].setreps=pd&&pd.setreps?pd.setreps:'';
     }
   }
+  var deloadWeek=info.deload;
   for(var e=0;e<exs.length;e++){
     var ex=exs[e],isTime=ex.type==='time',isReps=ex.type==='reps';
+    var srList=ex.setreps?String(ex.setreps).split(/[\/,\s]+/).filter(function(x){return x;}):null;
     // collapse the card to one line once every set is ticked (tap to re-open)
     var exAllDone=ex.sets.length>0;
     for(var ad=0;ad<ex.sets.length;ad++)if(!ex.sets[ad].done){exAllDone=false;break;}
@@ -740,14 +757,15 @@ function renderTrain(day){
     var rows='';
     for(var s=0;s<ex.sets.length;s++){
       var st=ex.sets[s];
+      var ph=(srList&&srList[s])?srList[s]:'0';
       rows+='<div class="setrow'+(st.done?' rowdone':'')+'"><button class="sn'+(st.done?' on':'')+'" onclick="toggleSetDone(\''+day+'\','+e+','+s+')" aria-label="Mark set done">'+(st.done?'&#10003;':(s+1))+'</button>';
       if(isTime){
-        rows+='<div class="fieldwrap" style="grid-column:span 2"><input inputmode="numeric" data-d="'+day+'" data-e="'+e+'" data-s="'+s+'" data-f="reps" value="'+(st.reps||'')+'" placeholder="0" oninput="setVal(this)"><span class="u">SEC</span></div>';
+        rows+='<div class="fieldwrap" style="grid-column:span 2"><input inputmode="numeric" data-d="'+day+'" data-e="'+e+'" data-s="'+s+'" data-f="reps" value="'+(st.reps||'')+'" placeholder="'+ph+'" oninput="setVal(this)"><span class="u">SEC</span></div>';
       }else if(isReps){
-        rows+='<div class="fieldwrap" style="grid-column:span 2"><input inputmode="numeric" data-d="'+day+'" data-e="'+e+'" data-s="'+s+'" data-f="reps" value="'+(st.reps||'')+'" placeholder="0" oninput="setVal(this)"><span class="u">REPS</span></div>';
+        rows+='<div class="fieldwrap" style="grid-column:span 2"><input inputmode="numeric" data-d="'+day+'" data-e="'+e+'" data-s="'+s+'" data-f="reps" value="'+(st.reps||'')+'" placeholder="'+ph+'" oninput="setVal(this)"><span class="u">REPS</span></div>';
       }else{
         rows+='<div class="fieldwrap"><input inputmode="decimal" data-d="'+day+'" data-e="'+e+'" data-s="'+s+'" data-f="weight" value="'+(st.weight||'')+'" placeholder="0" oninput="setVal(this)"><span class="u">KG</span></div>';
-        rows+='<div class="fieldwrap"><input inputmode="numeric" data-d="'+day+'" data-e="'+e+'" data-s="'+s+'" data-f="reps" value="'+(st.reps||'')+'" placeholder="0" oninput="setVal(this)"><span class="u">REPS</span></div>';
+        rows+='<div class="fieldwrap"><input inputmode="numeric" data-d="'+day+'" data-e="'+e+'" data-s="'+s+'" data-f="reps" value="'+(st.reps||'')+'" placeholder="'+ph+'" oninput="setVal(this)"><span class="u">REPS</span></div>';
       }
       rows+='<button class="delset" onclick="delSet(\''+day+'\','+e+','+s+')">&minus;</button></div>';
     }
@@ -755,18 +773,25 @@ function renderTrain(day){
     if(isTime)colh='<div class="colhead"><span>#</span><span style="grid-column:span 2">Time held</span><span></span></div>';
     else if(isReps)colh='<div class="colhead"><span>#</span><span style="grid-column:span 2">Reps</span><span></span></div>';
     else colh='<div class="colhead"><span>#</span><span>Weight</span><span>Reps</span><span></span></div>';
-    var meta='';
-    if(ex.tempo||ex.rest){
-      meta='<div class="exmeta">'
-        +(ex.tempo?'<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>Tempo <b>'+esc(ex.tempo)+'</b></span>':'')
-        +(ex.rest?'<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l2 5 4-10 2 5h6"/></svg>Rest <b>'+esc(ex.rest)+'</b></span>':'')
-        +'</div>';
+    var meta='<div class="exmeta">'
+      +(ex.tempo?'<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>Tempo <b>'+esc(ex.tempo)+'</b></span>':'')
+      +(ex.rest?'<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l2 5 4-10 2 5h6"/></svg>Rest <b>'+esc(ex.rest)+'</b></span>':'')
+      +(ex.rpe?'<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h7l-1 8 11-13h-7z"/></svg>RPE <b>'+esc(ex.rpe)+'</b></span>':'')
+      +'<a class="vidlink" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query='+encodeURIComponent(ex.name+' form technique')+'"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M8 5.5v13l11-6.5z"/></svg>Form</a>'
+      +(ex.type==='wr'?'<button class="wubtn" onclick="toggleWarmup(\''+day+'\','+e+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 17h3l2-9 3 13 3-9 2 5h3"/></svg>Warm-up</button>':'')
+      +'</div>'
+      +'<div class="warmups" id="wu-'+day+'-'+e+'"></div>';
+    var cueLine=ex.cue?'<div class="cue">'+esc(ex.cue)+'</div>':'';
+    var prog='';
+    if(!deloadWeek&&ex.type==='wr'&&lmap[ex.name]){
+      var pr=progressionHit(ex,lmap[ex.name]);
+      if(pr)prog='<div class="progbadge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 19V5M5 12l7-7 7 7"/></svg>'+pr+'</div>';
     }
     html+='<div class="ex"><div class="top"><div class="nm">'+esc(ex.name)+'</div>'
       +'<button class="exedit" onclick="openExEdit(\''+day+'\','+e+')" aria-label="Edit exercise">'
       +'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>'
       +'<span class="tg">'+esc(ex.target)+'</span></button></div>'
-      +meta+lastTxt+colh+rows
+      +meta+cueLine+prog+lastTxt+colh+rows
       +'<button class="addset" onclick="addSet(\''+day+'\','+e+')">+ add set</button></div>';
   }
   html+='<button class="addex" onclick="openExAdd(\''+day+'\')">'
@@ -850,6 +875,54 @@ function copyLast(day,e){
 }
 function expandEx(day,e){draft[day][e].open=true;saveDraft();renderTrain(day);}
 
+/* ---- progression flag: hit the top of the rep range on every set last time -> nudge to add weight ---- */
+function progressionHit(ex,lm){
+  if(!lm||!lm.sets||!lm.sets.length)return null;
+  if(ex.setreps){ // per-set scheme: every set must hit its own target
+    var srs=String(ex.setreps).split(/[\/,\s]+/).filter(function(x){return x;});
+    if(lm.sets.length<srs.length)return null;
+    for(var i=0;i<srs.length;i++)if((lm.sets[i].reps||0)<parseInt(srs[i],10))return null;
+    return 'Hit every rep target last time — add 2.5 kg';
+  }
+  var nums=String(ex.target||'').match(/\d+/g);
+  if(!nums||nums.length<2)return null;
+  var planned=parseInt(nums[0],10),topRep=parseInt(nums[nums.length-1],10);
+  if(!planned||!topRep)return null;
+  if(lm.sets.length<planned)return null;
+  for(var k=0;k<lm.sets.length;k++)if((lm.sets[k].reps||0)<topRep)return null;
+  return 'Hit '+topRep+'+ on all sets last time — add 2.5 kg';
+}
+
+/* ---- warm-up ramp: bar -> 40% -> 60% -> 80% of the working weight ---- */
+function warmupRamp(work){
+  work=parseFloat(work)||0;
+  if(work<30)return null; // below this, just do the movement with the bar
+  var bar=20,steps=[{w:bar,r:10}];
+  function rnd(x){return Math.max(bar,Math.round(x/2.5)*2.5);}
+  if(work>=50)steps.push({w:rnd(work*0.4),r:8});
+  steps.push({w:rnd(work*0.6),r:5});
+  steps.push({w:rnd(work*0.8),r:3});
+  var out=[],seen={};
+  for(var i=0;i<steps.length;i++){
+    if(steps[i].w>=work||seen[steps[i].w])continue;
+    seen[steps[i].w]=1;out.push(steps[i]);
+  }
+  return out.length?out:null;
+}
+function toggleWarmup(day,e){
+  var el=document.getElementById('wu-'+day+'-'+e);
+  if(!el)return;
+  if(el.classList.contains('on')){el.classList.remove('on');el.innerHTML='';return;}
+  var ex=draft[day][e];
+  var wgt=parseFloat(ex.sets[0]&&ex.sets[0].weight)||0;
+  if(!wgt){var lm=lastExFor(day,ex.name);if(lm&&lm.sets[0])wgt=lm.sets[0].weight||0;}
+  var ramp=warmupRamp(wgt);
+  if(!wgt)el.innerHTML='Enter a set-1 weight first and tap again.';
+  else if(!ramp)el.innerHTML='At '+wgt+' kg, just warm up with the empty bar.';
+  else el.innerHTML='<b>To '+wgt+' kg:</b> '+ramp.map(function(x){return x.w+'kg×'+x.r;}).join(' &rarr; ')+' &rarr; work sets';
+  el.classList.add('on');
+}
+
 /* ---- add / change exercise (persists to that day's plan going forward) ---- */
 var exEditType='wr';
 function typeSegHtml(sel){
@@ -864,6 +937,9 @@ function exSheet(opts){
     +'<div class="field"><label>Target (sets × reps)</label><input type="text" id="exTarget" value="'+esc(opts.target||'').replace(/"/g,'&quot;')+'" placeholder="e.g. 3 × 15" autocomplete="off"></div>'
     +'<div class="field row2"><div><label>Tempo — optional</label><input type="text" id="exTempo" value="'+esc(opts.tempo||'').replace(/"/g,'&quot;')+'" placeholder="e.g. 3-1-1" autocomplete="off"></div>'
     +'<div><label>Rest — optional</label><input type="text" id="exRest" value="'+esc(opts.rest||'').replace(/"/g,'&quot;')+'" placeholder="e.g. 90s" autocomplete="off"></div></div>'
+    +'<div class="field row2"><div><label>RPE — optional</label><input type="text" id="exRpe" value="'+esc(opts.rpe||'').replace(/"/g,'&quot;')+'" placeholder="e.g. 7–8" autocomplete="off"></div>'
+    +'<div><label>Per-set reps — optional</label><input type="text" id="exSetreps" value="'+esc(opts.setreps||'').replace(/"/g,'&quot;')+'" placeholder="e.g. 10/8/6" autocomplete="off"></div></div>'
+    +'<div class="field"><label>Form cue — optional</label><input type="text" id="exCue" value="'+esc(opts.cue||'').replace(/"/g,'&quot;')+'" placeholder="e.g. Brace, knees out" autocomplete="off"></div>'
     +'<div class="field"><label>Logging type</label><div id="typeSegWrap">'+typeSegHtml(exEditType)+'</div></div>'
     +(opts.add?'<div class="field"><label>Number of sets</label><input type="number" inputmode="numeric" id="exSets" value="3" min="1" max="10"></div>':'')
     +'<button class="btn" onclick="'+opts.onsave+'">'+opts.savelabel+'</button>'
@@ -874,12 +950,12 @@ function exSheet(opts){
 function openExEdit(day,e){
   var ex=draft[day][e];
   exEditType=ex.type||'wr';
-  exSheet({title:'EDIT EXERCISE',name:ex.name,target:ex.target,tempo:ex.tempo,rest:ex.rest,day:day,idx:e,add:false,
+  exSheet({title:'EDIT EXERCISE',name:ex.name,target:ex.target,tempo:ex.tempo,rest:ex.rest,rpe:ex.rpe,cue:ex.cue,setreps:ex.setreps,day:day,idx:e,add:false,
     onsave:'saveExEdit(\''+day+'\','+e+')',savelabel:'Save changes'});
 }
 function openExAdd(day){
   exEditType='wr';
-  exSheet({title:'ADD EXERCISE',name:'',target:'3 × 12',tempo:'',rest:'90s',day:day,add:true,
+  exSheet({title:'ADD EXERCISE',name:'',target:'3 × 12',tempo:'',rest:'90s',rpe:'',cue:'',setreps:'',day:day,add:true,
     onsave:'saveExAdd(\''+day+'\')',savelabel:'Add to workout'});
 }
 function readExForm(){
@@ -888,11 +964,14 @@ function readExForm(){
   if(!name){toast('Give the exercise a name');return null;}
   return {name:name,target:target||'—',type:exEditType,
     tempo:(document.getElementById('exTempo').value||'').trim(),
-    rest:(document.getElementById('exRest').value||'').trim()};
+    rest:(document.getElementById('exRest').value||'').trim(),
+    rpe:(document.getElementById('exRpe').value||'').trim(),
+    cue:(document.getElementById('exCue').value||'').trim(),
+    setreps:(document.getElementById('exSetreps').value||'').trim()};
 }
 function syncPlanFromDraft(day){
-  // keep the saved plan in lockstep with the current draft (names/targets/types/tempo/rest)
-  DATA.plan[day]=draft[day].map(function(x){return {n:x.name,t:x.target,type:x.type,tempo:x.tempo||'',rest:x.rest||''};});
+  // keep the saved plan in lockstep with the current draft (all program fields)
+  DATA.plan[day]=draft[day].map(function(x){return {n:x.name,t:x.target,type:x.type,tempo:x.tempo||'',rest:x.rest||'',rpe:x.rpe||'',cue:x.cue||'',setreps:x.setreps||''};});
   save();
   saveDraft();
 }
@@ -900,16 +979,17 @@ function saveExEdit(day,e){
   var f=readExForm();if(!f)return;
   var ex=draft[day][e];
   var typeChanged=ex.type!==f.type;
-  ex.name=f.name;ex.target=f.target;ex.type=f.type;ex.tempo=f.tempo;ex.rest=f.rest;
+  ex.name=f.name;ex.target=f.target;ex.type=f.type;ex.tempo=f.tempo;ex.rest=f.rest;ex.rpe=f.rpe;ex.cue=f.cue;ex.setreps=f.setreps;
   if(typeChanged)for(var s=0;s<ex.sets.length;s++){ex.sets[s]={weight:'',reps:''};} // clear values when units change
   syncPlanFromDraft(day);
   closeModal();renderTrain(day);toast('Exercise updated');
 }
 function saveExAdd(day){
   var f=readExForm();if(!f)return;
-  var nSets=Math.max(1,Math.min(10,parseInt(document.getElementById('exSets').value,10)||3));
+  var srN=f.setreps?String(f.setreps).split(/[\/,\s]+/).filter(function(x){return x;}).length:0;
+  var nSets=Math.max(1,Math.min(10,srN||parseInt(document.getElementById('exSets').value,10)||3));
   var sets=[];for(var i=0;i<nSets;i++)sets.push({weight:'',reps:''});
-  draft[day].push({name:f.name,target:f.target,type:f.type,tempo:f.tempo,rest:f.rest,sets:sets});
+  draft[day].push({name:f.name,target:f.target,type:f.type,tempo:f.tempo,rest:f.rest,rpe:f.rpe,cue:f.cue,setreps:f.setreps,sets:sets});
   syncPlanFromDraft(day);
   closeModal();renderTrain(day);toast('Exercise added');
 }
@@ -921,7 +1001,11 @@ function removeExercise(day,e){
   closeModal();renderTrain(day);toast('Exercise removed');
 }
 function dayIsCustomized(day){
-  return JSON.stringify(DATA.plan[day])!==JSON.stringify(DEFAULT_PLAN[day]);
+  // field-tolerant compare so newly-added program fields never falsely flag a day as customized
+  function norm(list){return (list||[]).map(function(x){
+    return [x.n,x.t,x.type,x.tempo||'',x.rest||'',x.rpe||'',x.cue||'',x.setreps||''].join('|');
+  }).join('~');}
+  return norm(DATA.plan[day])!==norm(DEFAULT_PLAN[day]);
 }
 function resetDayPlan(day){
   var label=DAY_META[day].title.split('—')[0].trim();
