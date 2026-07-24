@@ -189,6 +189,13 @@ input,select{font-family:inherit}
 .cue{font-size:11.5px;color:var(--mut2);font-style:italic;margin:7px 0 0}
 .progbadge{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:800;color:var(--volt);background:rgba(198,255,61,.08);border:1px solid rgba(198,255,61,.35);border-radius:9px;padding:7px 11px;margin:8px 0 0}
 .progbadge svg{width:13px;height:13px;flex:none;stroke-linecap:round;stroke-linejoin:round}
+.buildstamp{text-align:center;font-size:11px;color:var(--mut2);letter-spacing:.06em;margin:16px 0 4px}
+.exinfo{display:none}
+.exinfo.on{display:block}
+.infobtn{width:25px;height:25px;border-radius:99px;background:var(--bg2);border:1px solid var(--line2);color:var(--mut2);font-family:'Bebas Neue';font-size:15px;line-height:1;padding:0;flex:none;display:grid;place-items:center;margin-left:auto}
+.infobtn.on{background:var(--teal);border-color:var(--teal);color:#06212a}
+.infobtn:active{transform:scale(.9)}
+.ex .top{gap:8px}
 .ex .last b{color:var(--txt);font-weight:700}
 .ex .last.none{color:var(--mut2)}
 .setrow{display:grid;grid-template-columns:30px 1fr 1fr 34px;gap:8px;align-items:center;margin-bottom:8px}
@@ -484,6 +491,7 @@ function todayISO(){return new Date().toISOString().slice(0,10);}
 
 /* ---------------- program data (defined before defaults so seeding works) ---------------- */
 var DAY_META={A:{title:"Day A — Squat focus"},B:{title:"Day B — Deadlift focus"},C:{title:"Day C — Push / Pull"}};
+var BUILD_DATE="23 Jul 2026";
 var DEFAULT_PLAN={
   A:[{n:"Back squat",t:"3–4 × 6–8",type:"wr",tempo:"3-1-1",rest:"2–3 min",rpe:"7–8",cue:"Brace hard, knees track over toes, hit depth"},
      {n:"Bench press",t:"3 × 6–10",type:"wr",tempo:"3-1-1",rest:"2–3 min",rpe:"7–8",cue:"Shoulder blades pinned, feet planted, bar to mid-chest"},
@@ -662,15 +670,26 @@ function weekActivity(){
   }
   return {gym:gym,runs:runs,surfs:surfs};
 }
+function sessionIdxFor(day){ // most recent session for this day in the week being viewed
+  var w=weekNum();
+  for(var i=DATA.sessions.length-1;i>=0;i--)
+    if(DATA.sessions[i].day===day&&entryWeek(DATA.sessions[i])===w)return i;
+  return -1;
+}
+function tapGymChip(d){
+  var i=sessionIdxFor(d);
+  if(i>=0)openSessionEdit(i); // ticked: open it to move, fix or delete
+  else startDay(d);           // not ticked: jump straight into that day
+}
 function renderWeekCard(){
   var a=weekActivity();
   var gymDone=(a.gym.A?1:0)+(a.gym.B?1:0)+(a.gym.C?1:0);
   var total=gymDone+(a.runs>0?1:0)+(a.surfs>0?1:0);
   function gymChip(d){var on=a.gym[d];
-    return '<div class="chip'+(on?' done':'')+'"><div class="ic">'+(on
+    return '<button class="chip tap'+(on?' done':'')+'" onclick="tapGymChip(\''+d+'\')"><div class="ic">'+(on
       ?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>'
       :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 6.5l11 11M4 10l3-3M17 20l3-3"/></svg>')
-      +'</div><b>Day '+d+'</b></div>';}
+      +'</div><b>Day '+d+'</b></button>';}
   var html='<div class="wkhead"><span class="eyebrow">This Week</span><span class="done">'+total+' / 5 sessions</span></div>'
     +'<div class="chips" style="margin-bottom:9px">'+gymChip('A')+gymChip('B')+gymChip('C')+'</div>'
     +'<div class="chips">'
@@ -773,21 +792,24 @@ function renderTrain(day){
     if(isTime)colh='<div class="colhead"><span>#</span><span style="grid-column:span 2">Time held</span><span></span></div>';
     else if(isReps)colh='<div class="colhead"><span>#</span><span style="grid-column:span 2">Reps</span><span></span></div>';
     else colh='<div class="colhead"><span>#</span><span>Weight</span><span>Reps</span><span></span></div>';
-    var meta='<div class="exmeta">'
+    var meta='<div class="exinfo'+(ex.info?' on':'')+'"><div class="exmeta">'
       +(ex.tempo?'<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>Tempo <b>'+esc(ex.tempo)+'</b></span>':'')
       +(ex.rest?'<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l2 5 4-10 2 5h6"/></svg>Rest <b>'+esc(ex.rest)+'</b></span>':'')
       +(ex.rpe?'<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h7l-1 8 11-13h-7z"/></svg>RPE <b>'+esc(ex.rpe)+'</b></span>':'')
       +'<a class="vidlink" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query='+encodeURIComponent(ex.name+' form technique')+'"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M8 5.5v13l11-6.5z"/></svg>Form</a>'
       +(ex.type==='wr'?'<button class="wubtn" onclick="toggleWarmup(\''+day+'\','+e+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 17h3l2-9 3 13 3-9 2 5h3"/></svg>Warm-up</button>':'')
       +'</div>'
-      +'<div class="warmups" id="wu-'+day+'-'+e+'"></div>';
-    var cueLine=ex.cue?'<div class="cue">'+esc(ex.cue)+'</div>':'';
+      +'<div class="warmups" id="wu-'+day+'-'+e+'"></div>'
+      +(ex.cue?'<div class="cue">'+esc(ex.cue)+'</div>':'')
+      +'</div>';
+    var cueLine='';
     var prog='';
     if(!deloadWeek&&ex.type==='wr'&&lmap[ex.name]){
       var pr=progressionHit(ex,lmap[ex.name]);
       if(pr)prog='<div class="progbadge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 19V5M5 12l7-7 7 7"/></svg>'+pr+'</div>';
     }
     html+='<div class="ex"><div class="top"><div class="nm">'+esc(ex.name)+'</div>'
+      +'<button class="infobtn'+(ex.info?' on':'')+'" onclick="toggleExInfo(\''+day+'\','+e+')" aria-label="Show exercise details">i</button>'
       +'<button class="exedit" onclick="openExEdit(\''+day+'\','+e+')" aria-label="Edit exercise">'
       +'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>'
       +'<span class="tg">'+esc(ex.target)+'</span></button></div>'
@@ -801,7 +823,9 @@ function renderTrain(day){
       +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>'
       +'Reset '+DAY_META[day].title.split('—')[0].trim()+' to original</button>';
   }
+  var sy=window.scrollY||window.pageYOffset||0; // keep the view still when a card collapses
   document.getElementById('exList').innerHTML=html;
+  if(sy)window.scrollTo(0,sy);
 }
 function setVal(el){
   var d=el.getAttribute('data-d'),e=+el.getAttribute('data-e'),s=+el.getAttribute('data-s'),f=el.getAttribute('data-f');
@@ -854,6 +878,7 @@ function toggleSetDone(day,e,s){
   }
   if(!st.reps){toast('Enter reps first');return;}
   st.done=true;
+  buzz(18); // short tick so you feel the tap without looking
   var exAll=true;for(var k=0;k<ex.sets.length;k++)if(!ex.sets[k].done){exAll=false;break;}
   if(exAll)ex.open=false; // finished exercise folds down
   saveDraft();
@@ -874,6 +899,8 @@ function copyLast(day,e){
   toast('Filled from last session');
 }
 function expandEx(day,e){draft[day][e].open=true;saveDraft();renderTrain(day);}
+function toggleExInfo(day,e){draft[day][e].info=!draft[day][e].info;saveDraft();renderTrain(day);}
+function buzz(ms){if(navigator.vibrate){try{navigator.vibrate(ms);}catch(err){}}}
 
 /* ---- progression flag: hit the top of the rep range on every set last time -> nudge to add weight ---- */
 function progressionHit(ex,lm){
@@ -1261,16 +1288,26 @@ function renderHistory(){
     +'<span class="done" style="font-size:12px;color:var(--mut);font-weight:700">'+DATA.sessions.length+' logged</span></div>'
     +'<div class="histlist">'+rows+'</div><div style="font-size:11px;color:var(--mut2);margin-top:8px">Tap a workout to fix weights/reps, or ✕ to delete.</div></div>';
 }
-var editIdx=-1,editDraft=null;
+var editIdx=-1,editDraft=null,editDay='A';
+function daySegHtml(sel){
+  function b(v){return '<button class="'+(sel===v?'on':'')+'" onclick="pickEditDay(\''+v+'\')">Day '+v+'</button>';}
+  return '<div class="typeseg">'+b('A')+b('B')+b('C')+'</div>';
+}
+function pickEditDay(v){editDay=v;var el=document.getElementById('daySegWrap');if(el)el.innerHTML=daySegHtml(v);}
 function openSessionEdit(idx){
   editIdx=idx;var s=DATA.sessions[idx];
   editDraft=JSON.parse(JSON.stringify(s.exercises));
   for(var e=0;e<editDraft.length;e++){if(!editDraft[e].sets||!editDraft[e].sets.length)editDraft[e].sets=[{weight:'',reps:''}];}
   var wk=(s.week!=null?s.week:entryWeek(s));
-  var hdr=(DAY_META[s.day]?DAY_META[s.day].title.split('—')[0].trim():('Day '+s.day))+' · Week '+wk+' · '+fmtNiceDate(s.date);
+  editDay=s.day;
+  var wkOpts='';
+  for(var wv=1;wv<=12;wv++)wkOpts+='<option value="'+wv+'"'+(wv===wk?' selected':'')+'>Week '+wv+(weekInfo(wv).deload?' (deload)':'')+'</option>';
   var sheet=document.getElementById('settingsSheet');
   sheet.innerHTML='<div class="grip"></div><h2>EDIT WORKOUT</h2>'
-    +'<div class="note">'+esc(hdr)+'. Fix any weights or reps and save. Clear a set\'s reps to drop it.</div>'
+    +'<div class="field"><label>Workout day</label><div id="daySegWrap">'+daySegHtml(editDay)+'</div></div>'
+    +'<div class="field row2"><div><label>Program week</label><select id="edWeek" class="liftselect">'+wkOpts+'</select></div>'
+    +'<div><label>Date</label><input type="date" id="edDate" value="'+esc(s.date)+'"></div></div>'
+    +'<div class="note">Logged the wrong day or week? Change it here — the tick moves with it. Fix any weights or reps below; clear a set\'s reps to drop it.</div>'
     +'<div id="editBody"></div>'
     +'<button class="btn" onclick="saveSessionEdit()">Save changes</button>'
     +'<div class="dangerrow"><button class="btn danger" onclick="deleteSession('+idx+')">Delete this workout</button></div>';
@@ -1302,6 +1339,10 @@ function addEditSet(e){var sets=editDraft[e].sets,p=sets[sets.length-1]||{};sets
 function delEditSet(e,s){if(editDraft[e].sets.length<=1)return;editDraft[e].sets.splice(s,1);renderEditBody();}
 function saveSessionEdit(){
   var idx=editIdx,s=DATA.sessions[idx];if(!s)return;
+  var wkEl=document.getElementById('edWeek'),dtEl=document.getElementById('edDate');
+  var newWeek=wkEl?(parseInt(wkEl.value,10)||s.week):s.week;
+  var newDate=(dtEl&&dtEl.value)?dtEl.value:s.date;
+  var moved=(editDay!==s.day)||(newWeek!==s.week)||(newDate!==s.date);
   var logged=[];
   for(var e=0;e<editDraft.length;e++){
     var sets=[];
@@ -1312,7 +1353,10 @@ function saveSessionEdit(){
     if(sets.length)logged.push({name:editDraft[e].name,type:editDraft[e].type,sets:sets});
   }
   if(!logged.length){DATA.sessions.splice(idx,1);save();closeModal();toast('Workout removed');renderStats();renderHome();return;}
-  s.exercises=logged;save();closeModal();toast('Workout updated');renderStats();renderHome();
+  s.exercises=logged;s.day=editDay;s.week=newWeek;s.date=newDate;
+  save();closeModal();
+  toast(moved?('Moved to Day '+editDay+' · Week '+newWeek):'Workout updated');
+  renderStats();renderHome();
 }
 function deleteSession(idx){
   if(!confirm('Delete this whole workout? This can\'t be undone.'))return;
@@ -1582,7 +1626,8 @@ function openSettings(){
     +'<div class="dangerrow"><button class="btn ghost sm" onclick="exportData()">⤓ Export backup</button>'
     +'<button class="btn ghost sm" onclick="document.getElementById(\'importFile\').click()">⤒ Import</button></div>'
     +'<input type="file" id="importFile" accept="application/json" style="display:none" onchange="importData(this)">'
-    +'<div class="dangerrow"><button class="btn danger" onclick="resetData()">Reset all data</button></div>';
+    +'<div class="dangerrow"><button class="btn danger" onclick="resetData()">Reset all data</button></div>'
+    +'<div class="buildstamp">FORGE &middot; build '+BUILD_DATE+'</div>';
   document.getElementById('settingsModal').classList.add('on');
 }
 function saveSettings(){
@@ -1631,7 +1676,12 @@ function resetData(){
 if(/tiiny/i.test(location.hostname))document.documentElement.style.setProperty('--tiiny','64px');
 renderHome();
 startDay; // noop ref
-/* single-file build: offline caching omitted; data still saves locally */
+// offline support: needs sw.js sitting next to index.html. Fails silently if it isn't there.
+if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('./sw.js').catch(function(){});
+  });
+}
 </script>
 </body>
 </html>
